@@ -20,6 +20,7 @@ student *createStudent(int nUsp, char *name, char *surname, char *course, float 
 void deleteStudent(student *st)
 {
     free(st->course);
+    free(st->surname);
     free(st->name);
     free(st);
 }
