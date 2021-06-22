@@ -70,15 +70,15 @@ student *getStudentFromWord(char *word)
     tok = strtok(word, ",");
     int nUsp = atoi(tok);
 
-    tok = strtok(NULL, ",\n");
+    tok = strtok(NULL, ",\"");
     char *name = malloc(sizeof(char) * MAX_STRING_SIZE);
     strcpy(name, tok);
 
-    tok = strtok(NULL, ",\n");
+    tok = strtok(NULL, ",\"");
     char *surname = malloc(sizeof(char) * MAX_STRING_SIZE);
     strcpy(surname, tok);
 
-    tok = strtok(NULL, ",\n");
+    tok = strtok(NULL, ",\"");
     char *course = malloc(sizeof(char) * MAX_STRING_SIZE);
     strcpy(course, tok);
 
