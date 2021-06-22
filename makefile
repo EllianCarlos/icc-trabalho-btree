@@ -1,8 +1,8 @@
 run: all
-	./main.o
+	@./main.o
 
 all:
-	gcc *.c -o main.o
+	@gcc *.c -o main.o
 
 clean:
-	rm *.o
+	@rm *.o
