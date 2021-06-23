@@ -12,7 +12,7 @@
 // #define MAXKEYS 204
 #define MAXKEYS 4
 #define AUXFIELDSSIZEONPAGE (2 + 1) // number of keys and ”is leaf” bool
-#define FREESPACEONPAGE (PAGESIZE−((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3))
+#define FREESPACEONPAGE (PAGESIZE - ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3))
 #define PAGELENGTH ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3)
 #define RECORDLENGTH ((MAXKEYS * 4) + (MAXKEYS * 8))
 #define FREESPACE ""
