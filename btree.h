@@ -1,14 +1,21 @@
 #ifndef BTREE
 #define BTREE
 
-#include "utils.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include "utils.h"
 
 #define PAGESIZE 4096
 #define TREEHEADER PAGESIZE
-#define MAXKEYS 204
-#define AUXFIELDSSIZEONPAGE (2 + 1) // number of keys and ”is leaf” bool 
-#define FREESPACEONPAGE (PAGESIZE−((MAXKEYS∗4) + (MAXKEYS∗8) + ((MAXKEYS + 1)∗8) + 3))
+// #define MAXKEYS 204
+#define MAXKEYS 4
+#define AUXFIELDSSIZEONPAGE (2 + 1) // number of keys and ”is leaf” bool
+#define FREESPACEONPAGE (PAGESIZE−((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3))
+#define PAGELENGTH ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3)
+#define RECORDLENGTH ((MAXKEYS * 4) + (MAXKEYS * 8))
+#define FREESPACE ""
 
 typedef struct record
 {
@@ -21,7 +28,7 @@ typedef struct page
     record *records;
     long *childs;
     short numberOfKeys;
-    char isLeaf;
+    bool isLeaf;
 } btPage;
 
 typedef struct promotedkey
@@ -31,8 +38,8 @@ typedef struct promotedkey
     long childs[2];
 } promotedKey;
 
-btPage* getOrCreateRoot(FILE *);
-btPage* getRoot(FILE);
-Errors bTreeInsert(record *, btPage*, FILE*);
-long bTreeSelect(btPage*, int, FILE*);
+btPage *getOrCreateRoot(FILE *);
+btPage *getRoot(FILE);
+Errors bTreeInsert(record *, btPage *, FILE *);
+long bTreeSelect(btPage *, int, FILE *);
 #endif
