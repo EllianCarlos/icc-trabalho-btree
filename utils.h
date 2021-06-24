@@ -16,14 +16,12 @@
 #define OP_EXIT 4
 #define STRING_EXIT "exit"
 
-typedef struct Errors {
-    unsigned int* errorCode;
-} Errors;
+#define Errors bool
 
 int getOperation(char *);
 int getOperationNumber(char *);
-student* getStudentFromWord(char *);
-student* getStudentFromLine(char *);
+student *getStudentFromWord(char *);
+student *getStudentFromLine(char *);
 void exitSystem();
 
 #endif // UTILS_H_
