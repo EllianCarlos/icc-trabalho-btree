@@ -1,4 +1,4 @@
-#include "dataFile.h"
+#include "datafile.h"
 
 void readEverythingFromFile(FILE *filePointer, int numberOfStudentsInFile)
 {
