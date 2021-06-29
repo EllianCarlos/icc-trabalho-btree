@@ -28,18 +28,18 @@ void readFileFromRange(FILE *filePointer, int offset, int numberOfReads)
     free(st);
 }
 
-long appendAsFixedSize(char *fileName, student s)
+long appendAsFixedSize(char *fileName, student *s)
 {
     FILE *filePointer = fopen(fileName, "a+");
     fseek(filePointer, 0, SEEK_END);
     long offset = ftell(filePointer);
-    fwrite(&s, sizeof(student), 1, filePointer);
+    fwrite(s, sizeof(student), 1, filePointer);
     fflush(filePointer);
     fclose(filePointer);
     return offset;
 }
 
-void getByRNN(long RNN, char *filename, student *st, int nUsp)
+void getByRNN(long RNN, char *filename, student *st)
 {
     FILE *studentfile = fopen(filename, "ab+");
     rewind(studentfile);

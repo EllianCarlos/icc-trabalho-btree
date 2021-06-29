@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include "student.h"
 
-long appendAsFixedSize(char *, student s);
-void getByRNN(long, char *, student *, int);
+long appendAsFixedSize(char *, student *s);
+void getByRNN(long, char *, student *);
 void readEverythingFromFile(FILE *, int);
 int getNumberOfStudentsInFile(FILE *);
 void readFileFromRange(FILE *, int, int);
