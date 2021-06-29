@@ -38,8 +38,11 @@ typedef struct promotedkey
     long childs[2];
 } promotedKey;
 
+record *createRecord(int, long);
+void deleteRecord(record *);
 btPage *getOrCreateRoot(FILE *);
 btPage *getRoot(FILE);
 Errors bTreeInsert(record *, btPage *, FILE *);
 long bTreeSelect(btPage *, int, FILE *);
+void deallocatePage(btPage *);
 #endif

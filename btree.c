@@ -9,7 +9,7 @@ btPage *allocatePage()
 }
 
 // Desallocate page pointer
-void desallocatePage(btPage *page)
+void deallocatePage(btPage *page)
 {
     free(page->records);
     free(page->childs);
@@ -223,7 +223,7 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
             {
                 btPage *aux = getPage(node->childs[i], fp);
                 result = bTreeSelect(aux, key, fp);
-                desallocatePage(aux);
+                deallocatePage(aux);
                 return result;
             }
         }
@@ -232,10 +232,23 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
         {
             btPage *aux = getPage(node->childs[i], fp);
             result = bTreeSelect(aux, key, fp);
-            desallocatePage(aux);
+            deallocatePage(aux);
             return result;
         }
     }
     //Se não encontrar (chegar num nó folha e não estiver lá), retorna -1
     return -1;
+}
+
+record *createRecord(int key, long RNN)
+{
+    record *newRecord = (record *)malloc(sizeof(record));
+    newRecord->key = key;
+    newRecord->recordRRN = RNN;
+    return newRecord;
+}
+
+void deleteRecord(record *recordToDelete)
+{
+    free(recordToDelete);
 }
