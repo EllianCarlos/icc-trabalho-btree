@@ -9,8 +9,8 @@
 
 #define PAGESIZE 4096
 #define TREEHEADER PAGESIZE
-// #define MAXKEYS 204
-#define MAXKEYS 4
+#define MAXKEYS 204
+//#define MAXKEYS 4
 #define AUXFIELDSSIZEONPAGE (2 + 1) // number of keys and ”is leaf” bool
 #define FREESPACEONPAGE (PAGESIZE - ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3))
 #define PAGELENGTH ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3)
@@ -25,7 +25,7 @@ typedef struct record
 
 typedef struct page
 {
-    record *records;
+    record **records;
     long *childs;
     short numberOfKeys;
     bool isLeaf;
@@ -38,8 +38,15 @@ typedef struct promotedkey
     long childs[2];
 } promotedKey;
 
+btPage *allocatePage();
+void desallocatePage(btPage *page);
+void writeTreeHeader(FILE *fp, long rootRRN);
+btPage *readPageFromFile(FILE *fp);
+Errors writePageIntoFile(long rrn, btPage *page, FILE *fp);
+long getTreeHeader(FILE *fp);
+btPage *getPage(long RRN, FILE *fp);
+btPage *createTree(FILE *fp);
 btPage *getOrCreateRoot(FILE *);
 btPage *getRoot(FILE);
-Errors bTreeInsert(record *, btPage *, FILE *);
-long bTreeSelect(btPage *, int, FILE *);
+
 #endif
