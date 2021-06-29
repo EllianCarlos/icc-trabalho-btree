@@ -4,20 +4,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "limiters.h"
 
-#define MAX_STRING_SIZE 255 
-
-typedef struct student {
+typedef struct student
+{
     int nUsp;
-    char* name;
-    char* surname;
-    char* course;
+    char *name;
+    char *surname;
+    char *course;
     float grade;
 } student;
 
-student* createStudent(int, char*, char*, char*, float);
-void printStudent(student*);
-void printStudentArray(student*, int n);
-void deleteStudent(student*);
+typedef struct students
+{
+    student *stArray;
+    int len;
+} students;
 
-#endif // STUDENT_H_  
+student *createStudent(int, char *, char *, char *, float);
+void printStudent(student *);
+void printStudentArray(student *, int n);
+void deleteStudent(student *);
+void deleteStudents(students *);
+
+#endif // STUDENT_H_
