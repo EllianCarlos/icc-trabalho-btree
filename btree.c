@@ -1,35 +1,54 @@
 #include "btree.h"
 
-// Allocate page pointer
 btPage *allocatePage()
 {
     btPage *page = malloc(sizeof(PAGELENGTH));
-    page->records = malloc(sizeof(RECORDLENGTH) * MAXKEYS);
+    page->records = (record **)malloc(MAXKEYS * sizeof(record *));
     page->childs = malloc(sizeof(long) * (MAXKEYS + 1));
+    for(int i = 0; i < MAXKEYS; i++) {
+        page->records[i] = NULL;
+        page->childs[i] = -1;
+    }
+    page->childs[MAXKEYS] = -1;
+    page->numberOfKeys = 0;
+    page->isLeaf = true;
 }
 
 // Desallocate page pointer
 void deallocatePage(btPage *page)
 {
+    for(int i = 0; i < MAXKEYS; i++) {
+        if(page->records[i] != NULL)
+            free(page->records[i]);
+    }
     free(page->records);
     free(page->childs);
     free(page);
 }
 
-/*Retrives page from file pointer*/
+void writeTreeHeader(FILE *fp, long rootRRN)
+{
+    //Calcula espaço livre e escreve no cabeçalho da árvore, junto com o RRN do nó raíz
+    fseek(fp, 0, SEEK_SET);
+    fwrite(&rootRRN, sizeof(long), 1, fp);
+    while (ftell(fp) != PAGESIZE)
+    {
+        fwrite(FREESPACE, 1, 1, fp);
+    }
+}
+
 btPage *readPageFromFile(FILE *fp)
 {
     //Aloca espaço para carregar página
     btPage *page = allocatePage();
     //Lê dados da página do arquivo
-    fread(page->records, RECORDLENGTH, MAXKEYS, fp);
+    fread(page->records, RECORDLENGTH, 1, fp);
     fread(page->childs, sizeof(long), (MAXKEYS + 1), fp);
-    fread(page->numberOfKeys, sizeof(short), 1, fp);
-    fread(page->isLeaf, sizeof(bool), 1, fp);
+    fread(&page->numberOfKeys, sizeof(short), 1, fp);
+    fread(&page->isLeaf, sizeof(bool), 1, fp);
     return page;
 }
 
-/*Writes page into file in certain rrn position*/
 Errors writePageIntoFile(long rrn, btPage *page, FILE *fp)
 {
     //Verifica se está tudo ok com os dados
@@ -38,10 +57,10 @@ Errors writePageIntoFile(long rrn, btPage *page, FILE *fp)
         //Encontra local para escrita baseado no RRN
         fseek(fp, rrn, SEEK_SET);
         //Escreve dados
-        fwrite(page->records, RECORDLENGTH, MAXKEYS, fp);
+        fwrite(page->records, RECORDLENGTH, 1, fp);
         fwrite(page->childs, sizeof(long), (MAXKEYS + 1), fp);
-        fwrite(page->numberOfKeys, sizeof(short), 1, fp);
-        fwrite(page->isLeaf, sizeof(bool), 1, fp);
+        fwrite(&page->numberOfKeys, sizeof(short), 1, fp);
+        fwrite(&page->isLeaf, sizeof(bool), 1, fp);
         //Atualiza valor de espaço livre na página
         for (int i = 0; i <= FREESPACEONPAGE; i++)
         {
@@ -56,16 +75,6 @@ Errors writePageIntoFile(long rrn, btPage *page, FILE *fp)
     //Dica: você pode criar uma função que só lida com a escrita dos dados e chamar aqui
 }
 
-/*Get page by rrn*/
-btPage *getPage(long RRN, FILE *fp)
-{
-    //Recupera uma página baseado no RRN
-    fseek(fp, RRN, SEEK_SET);
-    //Procura e carrega seus dados
-    return readPageFromFile(fp);
-}
-
-/*Get root RRN from header*/
 long getTreeHeader(FILE *fp)
 {
     long rrnRoot = 0;
@@ -75,25 +84,18 @@ long getTreeHeader(FILE *fp)
     return rrnRoot;
 }
 
-/*Writes root RRN in header*/
-void writeTreeHeader(FILE *fp, long rootRRN)
+btPage *getPage(long RRN, FILE *fp)
 {
-    //Calcula espaço livre e escreve no cabeçalho da árvore, junto com o RRN do nó raíz
-    fseek(fp, 0, SEEK_SET);
-    fwrite(&rootRRN, sizeof(long), 1, fp);
-    while (ftell(fp) != PAGESIZE)
-    {
-        fwrite(FREESPACE, 1, 1, fp);
-    }
+    //Recupera uma página baseado no RRN
+    fseek(fp, RRN, SEEK_SET);
+    //Procura e carrega seus dados
+    return readPageFromFile(fp);
 }
 
 btPage *createTree(FILE *fp)
 {
     //Aloca espaço pra raiz
     btPage *root = allocatePage();
-    //Inicializa os valores
-    root->numberOfKeys = 0;
-    root->isLeaf = true;
     //Escreve a raiz no cabeçalho
     writeTreeHeader(fp, PAGESIZE);
     //Escreve a pagina da raiz
