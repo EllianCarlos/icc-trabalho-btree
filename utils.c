@@ -12,6 +12,7 @@ int getOperation(char *line)
     else
     {
         fprintf(stderr, "Impossível ler a entrada.");
+        free(operation);
         exitSystem();
     }
 }
@@ -90,4 +91,21 @@ student *getStudentFromWord(char *word)
     free(surname);
     free(course);
     return st;
+}
+
+int getNUspFromLine(char *line)
+{
+    char *word = (char *)malloc(sizeof(char) * MAX_STRING_SIZE);
+    if (1 == sscanf(line, "update %s", word))
+    {
+        int nUsp = atoi(word);
+        free(word);
+        return nUsp;
+    }
+    else
+    {
+        free(word);
+        fprintf(stderr, "Impossível ler a entrada.");
+        exitSystem();
+    }
 }

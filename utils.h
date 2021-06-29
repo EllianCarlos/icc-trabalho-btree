@@ -22,6 +22,7 @@ int getOperation(char *);
 int getOperationNumber(char *);
 student *getStudentFromWord(char *);
 student *getStudentFromLine(char *);
+int getNUspFromLine(char *);
 void exitSystem();
 
 #endif // UTILS_H_
