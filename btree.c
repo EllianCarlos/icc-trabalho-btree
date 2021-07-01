@@ -5,19 +5,22 @@ btPage *allocatePage()
     btPage *page = malloc(sizeof(PAGELENGTH));
     page->keys = (nodeKey **)malloc(MAXKEYS * sizeof(nodeKey *));
     page->childs = malloc(sizeof(long) * (MAXKEYS + 1));
-    for(int i = 0; i < MAXKEYS; i++) {
+    for (int i = 0; i < MAXKEYS; i++)
+    {
         page->keys[i] = NULL;
         page->childs[i] = -1;
     }
     page->childs[MAXKEYS] = -1;
     page->numberOfKeys = 0;
     page->isLeaf = true;
+    return page;
 }
 
-void desallocatePage(btPage *page)
+void deallocatePage(btPage *page)
 {
-    for(int i = 0; i < MAXKEYS; i++) {
-        if(page->keys[i] != NULL)
+    for (int i = 0; i < MAXKEYS; i++)
+    {
+        if (page->keys[i] != NULL)
             free(page->keys[i]);
     }
     free(page->keys);
@@ -143,16 +146,15 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
             {
                 btPage *aux = getPage(node->childs[i], fp);
                 result = bTreeSelect(aux, key, fp);
-                desallocatePage(aux);
+                deallocatePage(aux);
                 return result;
             }
         }
-        //Procura no ultimo filho
-        if (key < node->keys[i]->key && !node->isLeaf)
+        if ((node->keys[i] && key < node->keys[i]->key) && !node->isLeaf)
         {
             btPage *aux = getPage(node->childs[i], fp);
             result = bTreeSelect(aux, key, fp);
-            desallocatePage(aux);
+            deallocatePage(aux);
             return result;
         }
     }
@@ -167,7 +169,7 @@ nodeKey *createRecord(int key, long RNN)
     newRecord->recordRRN = RNN;
     newRecord->childs[0] = -1;
     newRecord->childs[1] = -1;
-    
+
     return newRecord;
 }
 

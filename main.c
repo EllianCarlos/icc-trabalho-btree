@@ -12,15 +12,19 @@
 #define datafilename "datafile.bin"
 #define btreefilename "btree.bin"
 
+#define DBG                       \
+    fprintf(stdout, "AAAAAAAAA\n"); \
+    fflush(stdout)
+
 void closeAndFreeAll(FILE *bTreeFile, btPage *pageToDeallocate)
 {
     fclose(bTreeFile);
-    desallocatePage(pageToDeallocate);
+    deallocatePage(pageToDeallocate);
 }
 
 void throwErrorAndClose(const char *ErrorMessage, FILE *bTreeFile, btPage *pageToDeallocate)
 {
-    fprintf(stderr, "%s\n",  ErrorMessage);
+    fprintf(stderr, "%s\n", ErrorMessage);
     closeAndFreeAll(bTreeFile, pageToDeallocate);
     exitSystem();
 }
@@ -31,14 +35,14 @@ int main()
     btPage *bTreePage = getOrCreateRoot(bTreeFile);
 
     char line[MAX_LINE_SIZE];
-    while(true) {
+    while (true)
+    {
         fgets(line, sizeof(line), stdin);
 
         int opCode = getOperation(line);
 
         if (OP_INSERT == opCode)
         {
-
             student *st = getStudentFromLine(line);
             long RNN = appendAsFixedSize(datafilename, st);
             nodeKey *newRecord = createRecord(st->nUsp, RNN);
@@ -55,7 +59,7 @@ int main()
             long RNN = bTreeSelect(bTreePage, st->nUsp, bTreeFile);
             if (RNN == -1)
             {
-                fprintf(stdout, "Registro nao encontrado!");
+                fprintf(stdout, "Registro nao encontrado\n");
             }
             else
             {
@@ -69,7 +73,7 @@ int main()
             long RNN = bTreeSelect(bTreePage, nUsp, bTreeFile);
             if (RNN == -1)
             {
-                fprintf(stdout, "Registro nao encontrado!");
+                fprintf(stdout, "Registro nao encontrado\n");
             }
             else
             {

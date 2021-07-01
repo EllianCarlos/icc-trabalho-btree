@@ -50,7 +50,7 @@ void exitSystem()
 student *getStudentFromLine(char *line)
 {
     char *word = (char *)malloc(sizeof(char) * MAX_STRING_SIZE);
-    if (1 == sscanf(line, "insert %s", word))
+    if (1 == sscanf(line, "insert %[^\n]s", word))
     {
         student *st = getStudentFromWord(word);
         free(word);
@@ -83,7 +83,7 @@ student *getStudentFromWord(char *word)
     char *course = malloc(sizeof(char) * MAX_STRING_SIZE);
     strcpy(course, tok);
 
-    tok = strtok(NULL, ",\n");
+    tok = strtok(NULL, ",");
     float grade = atof(tok);
 
     student *st = createStudent(nUsp, name, surname, course, grade);
@@ -95,16 +95,13 @@ student *getStudentFromWord(char *word)
 
 int getNUspFromLine(char *line)
 {
-    char *word = (char *)malloc(sizeof(char) * MAX_STRING_SIZE);
-    if (1 == sscanf(line, "update %s", word))
+    int nUsp;
+    if (1 == sscanf(line, "search %d", &nUsp))
     {
-        int nUsp = atoi(word);
-        free(word);
         return nUsp;
     }
     else
     {
-        free(word);
         fprintf(stderr, "Impossivel ler a entrada.");
         exitSystem();
     }

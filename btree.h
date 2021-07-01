@@ -39,7 +39,7 @@ typedef struct page {
 } btPage;
 
 btPage *allocatePage();
-void desallocatePage(btPage *page);
+void deallocatePage(btPage *page);
 void writeTreeHeader(FILE *fp, long rootRRN);
 btPage *readPageFromFile(FILE *fp);
 Errors writePageIntoFile(long rrn, btPage *page, FILE *fp);
