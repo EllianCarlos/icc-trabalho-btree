@@ -39,7 +39,7 @@ int main()
 
         student *st = getStudentFromLine(line);
         long RNN = appendAsFixedSize(datafilename, st);
-        record *newRecord = createRecord(st->nUsp, RNN);
+        nodeKey *newRecord = createRecord(st->nUsp, RNN);
         bool opResult = bTreeInsert(newRecord, bTreePage, bTreeFile);
         deleteStudent(st);
         if (opResult == false)
