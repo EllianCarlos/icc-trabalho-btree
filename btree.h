@@ -48,6 +48,7 @@ btPage *getPage(long RRN, FILE *fp);
 btPage *createTree(FILE *fp);
 btPage *getOrCreateRoot(FILE *);
 long bTreeSelect(btPage *, int, FILE *);
+nodeKey *createRecord(int key, long RNN);
 btPage *getRoot(FILE);
 
 #endif

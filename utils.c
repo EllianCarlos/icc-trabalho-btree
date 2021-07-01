@@ -11,7 +11,7 @@ int getOperation(char *line)
     }
     else
     {
-        fprintf(stderr, "Impossível ler a entrada.");
+        fprintf(stderr, "Impossivel ler a entrada.");
         free(operation);
         exitSystem();
     }
@@ -37,7 +37,7 @@ int getOperationNumber(char *operation)
     }
     else
     {
-        fprintf(stderr, "Operação inválida fechando sistema.");
+        fprintf(stderr, "Operacao invalida fechando sistema.");
         exitSystem();
     }
 }
@@ -59,7 +59,7 @@ student *getStudentFromLine(char *line)
     else
     {
         free(word);
-        fprintf(stderr, "Impossível ler a entrada.");
+        fprintf(stderr, "Impossivel ler a entrada.");
         exitSystem();
     }
 }
@@ -105,7 +105,7 @@ int getNUspFromLine(char *line)
     else
     {
         free(word);
-        fprintf(stderr, "Impossível ler a entrada.");
+        fprintf(stderr, "Impossivel ler a entrada.");
         exitSystem();
     }
 }

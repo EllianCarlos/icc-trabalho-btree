@@ -217,7 +217,7 @@ nodeKey *recInserirBTree(nodeKey *newRecord, btPage *page, FILE *fp) {
 }
 
 // Função principal para inserção
-Errors inserirBTree(nodeKey *newRecord) {
+Errors bTreeInsert(nodeKey *newRecord) {
     FILE *fp = fopen("btree.bin", "r+");
     btPage *root = getOrCreateRoot(fp);
     long rrnRoot = getTreeHeader(fp);
@@ -232,4 +232,6 @@ Errors inserirBTree(nodeKey *newRecord) {
     }
 
     fclose(fp);
+
+    return true;
 }

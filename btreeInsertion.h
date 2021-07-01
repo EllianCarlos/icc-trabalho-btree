@@ -12,4 +12,4 @@ nodeKey *split(btPage *splitedPage, nodeKey *newRecord, FILE *fp);
 void createAndSetNewRoot(btPage *formerRoot, long rrnFormerRoot, nodeKey *promotedKey, FILE *fp);
 nodeKey *insertInNode(nodeKey *newRecord, btPage *page, FILE *fp);
 nodeKey *recInserirBTree(nodeKey *newRecord, btPage *page, FILE *fp);
-Errors inserirBTree(nodeKey *newRecord);
+Errors bTreeInsert(nodeKey *newRecord);
