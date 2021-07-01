@@ -20,7 +20,7 @@ void closeAndFreeAll(FILE *bTreeFile, btPage *pageToDeallocate)
 
 void throwErrorAndClose(const char *ErrorMessage, FILE *bTreeFile, btPage *pageToDeallocate)
 {
-    fprintf(stderr, ErrorMessage);
+    fprintf(stderr, "%s\n",  ErrorMessage);
     closeAndFreeAll(bTreeFile, pageToDeallocate);
     exitSystem();
 }
