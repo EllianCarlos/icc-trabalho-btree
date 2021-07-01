@@ -2,7 +2,7 @@ run: all
 	@./main.o
 
 all:
-	@gcc *.c -o main.o
+	@gcc *.c *.h -o main.o
 
 clean:
 	@rm *.o
