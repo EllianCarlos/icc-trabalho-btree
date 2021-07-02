@@ -66,7 +66,7 @@ int main()
             deallocatePage(bTreePage);
             if (RNN == -1)
             {
-                fprintf(stdout, "Registro nao encontrado\n");
+                fprintf(stdout, "Registro nao encontrado!\n");
             }
             else
             {
@@ -82,7 +82,7 @@ int main()
             deallocatePage(bTreePage);
             if (RNN == -1)
             {
-                fprintf(stdout, "Registro nao encontrado\n");
+                fprintf(stdout, "Registro nao encontrado!\n");
             }
             else
             {

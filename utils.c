@@ -11,7 +11,7 @@ int getOperation(char *line)
     }
     else
     {
-        fprintf(stderr, "Impossivel ler a entrada.");
+        fprintf(stderr, "Impossivel ler a operação.\n");
         free(operation);
         exitSystem();
     }
@@ -50,7 +50,7 @@ void exitSystem()
 student *getStudentFromLine(char *line)
 {
     char *word = (char *)malloc(sizeof(char) * MAX_STRING_SIZE);
-    if (1 == sscanf(line, "insert %[^\n]s", word))
+    if (1 == sscanf(line, "insert %[^\n]s", word) || 1 == sscanf(line, "update %[^\n]s", word))
     {
         student *st = getStudentFromWord(word);
         free(word);
@@ -59,7 +59,7 @@ student *getStudentFromLine(char *line)
     else
     {
         free(word);
-        fprintf(stderr, "Impossivel ler a entrada.");
+        fprintf(stderr, "Impossivel ler o estudante.\n");
         exitSystem();
     }
 }
@@ -102,7 +102,7 @@ int getNUspFromLine(char *line)
     }
     else
     {
-        fprintf(stderr, "Impossivel ler a entrada.");
+        fprintf(stderr, "Impossivel ler o nUsp.\n");
         exitSystem();
     }
 }
