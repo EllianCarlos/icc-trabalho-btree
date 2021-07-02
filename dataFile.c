@@ -32,11 +32,11 @@ long appendAsFixedSize(FILE *fp, student *st)
 {
     fseek(fp, 0, SEEK_END);
     long offset = ftell(fp);
-    fwrite(&st->nUsp, sizeof(st->nUsp), 1, fp);
-    fwrite(&st->name, sizeof(st->name), MAX_STRING_SIZE, fp);
-    fwrite(&st->surname, sizeof(st->surname), MAX_STRING_SIZE, fp);
-    fwrite(&st->course, sizeof(st->course), MAX_STRING_SIZE, fp);
-    fwrite(&st->grade, sizeof(st->grade), 1, fp);
+    fwrite(&st->nUsp, sizeof(int), 1, fp);
+    fwrite(st->name, sizeof(char), MAX_STRING_SIZE, fp);
+    fwrite(st->surname, sizeof(char), MAX_STRING_SIZE, fp);
+    fwrite(st->course, sizeof(char), MAX_STRING_SIZE, fp);
+    fwrite(&st->grade, sizeof(float), 1, fp);
     fflush(fp);
     return offset;
 }
@@ -44,25 +44,25 @@ long appendAsFixedSize(FILE *fp, student *st)
 void getByRNN(long RNN, FILE *fp)
 {
     fseek(fp, RNN, SEEK_SET);
-    student *st = malloc(sizeof(student));
-    fread(&st->nUsp, sizeof(st->nUsp), 1, fp);
-    fread(&st->name, sizeof(st->name), MAX_STRING_SIZE, fp);
-    fread(&st->surname, sizeof(st->surname), MAX_STRING_SIZE, fp);
-    fread(&st->course, sizeof(st->course), MAX_STRING_SIZE, fp);
-    fread(&st->grade, sizeof(st->grade), 1, fp);
+    student *st = allocateStudent();
+    fread(&st->nUsp, sizeof(int), 1, fp);
+    fread(st->name, sizeof(char), MAX_STRING_SIZE, fp);
+    fread(st->surname, sizeof(char), MAX_STRING_SIZE, fp);
+    fread(st->course, sizeof(char), MAX_STRING_SIZE, fp);
+    fread(&st->grade, sizeof(float), 1, fp);
     printStudent(st);
-    free(st);
+    deleteStudent(st);
     return;
 }
 
 void updateStudent(long RNN, FILE *fp, student *st)
 {
     fseek(fp, RNN, SEEK_SET);
-    fwrite(&st->nUsp, sizeof(st->nUsp), 1, fp);
-    fwrite(&st->name, sizeof(st->name), MAX_STRING_SIZE, fp);
-    fwrite(&st->surname, sizeof(st->surname), MAX_STRING_SIZE, fp);
-    fwrite(&st->course, sizeof(st->course), MAX_STRING_SIZE, fp);
-    fwrite(&st->grade, sizeof(st->grade), 1, fp);
+    fwrite(&st->nUsp, sizeof(int), 1, fp);
+    fwrite(st->name, sizeof(char), MAX_STRING_SIZE, fp);
+    fwrite(st->surname, sizeof(char), MAX_STRING_SIZE, fp);
+    fwrite(st->course, sizeof(char), MAX_STRING_SIZE, fp);
+    fwrite(&st->grade, sizeof(float), 1, fp);
     fflush(fp);
     fclose(fp);
     return;

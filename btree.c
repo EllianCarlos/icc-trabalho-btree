@@ -2,12 +2,14 @@
 
 btPage *allocatePage()
 {
-    btPage *page = malloc(sizeof(PAGELENGTH));
-    page->keys = (nodeKey **)malloc(MAXKEYS * sizeof(nodeKey *));
+    btPage *page = (btPage *)malloc(sizeof(page));
+    page->records = (record **)malloc(MAXKEYS * sizeof(record *));
     page->childs = malloc(sizeof(long) * (MAXKEYS + 1));
     for (int i = 0; i < MAXKEYS; i++)
     {
-        page->keys[i] = NULL;
+        page->records[i] = (record *)malloc(sizeof(record));
+        page->records[i]->key = -1;
+        page->records[i]->recordRRN = -1;
         page->childs[i] = -1;
     }
     page->childs[MAXKEYS] = -1;
@@ -20,10 +22,11 @@ void deallocatePage(btPage *page)
 {
     for (int i = 0; i < MAXKEYS; i++)
     {
-        if (page->keys[i] != NULL)
-            free(page->keys[i]);
+        if (page->records[i] != NULL) {
+            free(page->records[i]);
+        }
     }
-    free(page->keys);
+    free(page->records);
     free(page->childs);
     free(page);
 }
@@ -33,10 +36,12 @@ void writeTreeHeader(FILE *fp, long rootRRN)
     //Calcula espaço livre e escreve no cabeçalho da árvore, junto com o RRN do nó raíz
     fseek(fp, 0, SEEK_SET);
     fwrite(&rootRRN, sizeof(long), 1, fp);
+    fflush(fp);
     while (ftell(fp) != PAGESIZE)
     {
         fwrite(FREESPACE, 1, 1, fp);
     }
+    fflush(fp);
 }
 
 btPage *readPageFromFile(FILE *fp)
@@ -44,30 +49,55 @@ btPage *readPageFromFile(FILE *fp)
     //Aloca espaço para carregar página
     btPage *page = allocatePage();
     //Lê dados da página do arquivo
-    fread(page->keys, sizeof(nodeKey), MAXKEYS, fp);
-    fread(page->childs, sizeof(long), (MAXKEYS + 1), fp);
+    //printf("Bytes lidos antes da leitura da pag: %ld\n", ftell(fp));
+    for(int i = 0; i < MAXKEYS; i++) {
+        fread(&page->records[i]->key, sizeof(int), 1, fp);
+        fread(&page->records[i]->recordRRN, sizeof(long), 1, fp);
+        fread(&page->childs[i], sizeof(long), 1, fp);
+    }
+    fread(&page->childs[MAXKEYS], sizeof(long), 1, fp);
     fread(&page->numberOfKeys, sizeof(short), 1, fp);
     fread(&page->isLeaf, sizeof(bool), 1, fp);
+    //printf("Bytes lidos depois da leitura da pag: %ld\n\n", ftell(fp));
+
+    /*
+    printf("Informacoes da pag lida:\n");
+    printf("Numero de chaves: %d\n", page->numberOfKeys);
+    if(page->isLeaf)
+        printf("Eh uma folha\n");
+
+    printf("\n");
+    */
+
     return page;
 }
 
 Errors writePageIntoFile(long rrn, btPage *page, FILE *fp)
 {
+    //printf("RRN a ser escrito: %ld\n", rrn);
     //Verifica se está tudo ok com os dados
-    if (PAGESIZE <= rrn && !page)
+    if (PAGESIZE <= rrn && page != NULL)
     {
         //Encontra local para escrita baseado no RRN
         fseek(fp, rrn, SEEK_SET);
         //Escreve dados
-        fwrite(page->keys, sizeof(nodeKey), MAXKEYS, fp);
-        fwrite(page->childs, sizeof(long), (MAXKEYS + 1), fp);
+        //printf("Bytes lidos antes da escrita na pag: %ld\n", ftell(fp));
+        for(int i = 0; i < MAXKEYS; i++) {
+            fwrite(&page->records[i]->key, sizeof(int), 1, fp);
+            fwrite(&page->records[i]->recordRRN, sizeof(long), 1, fp);
+            fwrite(&page->childs[i], sizeof(long), 1, fp);
+        }
+        fwrite(&page->childs[MAXKEYS], sizeof(long), 1, fp);
         fwrite(&page->numberOfKeys, sizeof(short), 1, fp);
         fwrite(&page->isLeaf, sizeof(bool), 1, fp);
+        //printf("Bytes lidos depois da escrita da pag: %ld\n\n", ftell(fp));
+        fflush(fp);
         //Atualiza valor de espaço livre na página
         for (int i = 0; i <= FREESPACEONPAGE; i++)
         {
             fwrite(FREESPACE, 1, 1, fp);
         }
+        fflush(fp);
         return true;
     }
     else
@@ -79,7 +109,7 @@ Errors writePageIntoFile(long rrn, btPage *page, FILE *fp)
 
 long getTreeHeader(FILE *fp)
 {
-    long rrnRoot = 0;
+    long rrnRoot = -1;
     //Carrega o cabeçalho da árvore, que está no início do arquivo
     fseek(fp, 0, SEEK_SET);
     fread(&rrnRoot, sizeof(long), 1, fp);
@@ -110,13 +140,15 @@ btPage *getOrCreateRoot(FILE *fp)
     //Verifica se a árvore já existe ou precisa criar uma nova
     long rrnRoot = getTreeHeader(fp);
     //Se a árvore não existir, cria ela
-    if (rrnRoot == 0)
+    if (rrnRoot == -1)
     {
+        //printf("Nao tinha raiz\n");
         return createTree(fp);
     }
     //Se existir, só pega o RRN da raiz no cabeçalho e carrega sua página
     else
     {
+        //printf("Tinha raiz\n");
         return getPage(rrnRoot, fp);
     }
     //Pode ser adaptada pra inserção e busca sem precisar de 2 funções
@@ -125,24 +157,29 @@ btPage *getOrCreateRoot(FILE *fp)
 /*Returns rrn if key exist else return -1*/
 long bTreeSelect(btPage *node, int key, FILE *fp)
 {
+    //printf("Procurando a chave %d...\n", key);
     long result;
     int i;
     if (!node)
     {
+        //printf("Não tem node\n");
         return -1;
     }
     else
     {
+        //printf("Numero de chaves no node: %d\n", node->numberOfKeys);
         for (i = 0; i < node->numberOfKeys; i++)
         {
             //Procura no nó atual se a chave existe
-            if (key == node->keys[i]->key)
+            //printf("Chave da pag analisada na iteracao %d: %d\n", i, node->records[i]->key);
+            if (key == node->records[i]->key)
             {
                 //Se encontrar a chave, retorna RRN dela
-                return node->keys[i]->recordRRN;
+                //printf("Achei! Ela ta no RRN %ld\n", node->records[i]->recordRRN);
+                return node->records[i]->recordRRN;
             }
             //Se não existir, tenta procurar no filho adequado, recursivamente
-            else if (key < node->keys[i]->key && !node->isLeaf)
+            else if (key < node->records[i]->key && !node->isLeaf)
             {
                 btPage *aux = getPage(node->childs[i], fp);
                 result = bTreeSelect(aux, key, fp);
@@ -150,7 +187,7 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
                 return result;
             }
         }
-        if (!node->isLeaf && (node->keys[i] && key < node->keys[i]->key))
+        if (!node->isLeaf && (node->records[i] && key < node->records[i]->key))
         {
             btPage *aux = getPage(node->childs[i], fp);
             result = bTreeSelect(aux, key, fp);
@@ -159,21 +196,20 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
         }
     }
     //Se não encontrar (chegar num nó folha e não estiver lá), retorna -1
+    //printf("Nao encontrei...\n");
     return -1;
 }
 
-nodeKey *createRecord(int key, long RNN)
+record *createRecord(int key, long RNN)
 {
-    nodeKey *newRecord = (nodeKey *)malloc(sizeof(nodeKey));
+    record *newRecord = (record *)malloc(sizeof(record));
     newRecord->key = key;
     newRecord->recordRRN = RNN;
-    newRecord->childs[0] = -1;
-    newRecord->childs[1] = -1;
 
     return newRecord;
 }
 
-void deleteRecord(nodeKey *recordToDelete)
+void deleteRecord(record *recordToDelete)
 {
     free(recordToDelete);
 }

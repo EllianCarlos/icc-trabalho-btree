@@ -21,6 +21,7 @@ typedef struct students
     int len;
 } students;
 
+student *allocateStudent();
 student *createStudent(int, char *, char *, char *, float);
 void printStudent(student *);
 void printStudentArray(student *, int n);

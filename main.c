@@ -31,11 +31,11 @@ void throwErrorAndClose(const char *ErrorMessage, FILE *bTreeFile, FILE *dataFil
 
 int main()
 {
-    FILE *bTreeFile = fopen(btreefilename, "rb+");
+    FILE *bTreeFile = fopen(btreefilename, "wb+");
     if (bTreeFile == NULL)
         bTreeFile = fopen(btreefilename, "wb+");
 
-    FILE *dataFile = fopen(datafilename, "rb+");
+    FILE *dataFile = fopen(datafilename, "wb+");
     if (dataFile == NULL)
         dataFile = fopen(datafilename, "wb+");
 
@@ -50,8 +50,11 @@ int main()
         {
             student *st = getStudentFromLine(line);
             long RNN = appendAsFixedSize(dataFile, st);
-            nodeKey *newRecord = createRecord(st->nUsp, RNN);
-            bool opResult = bTreeInsert(newRecord);
+            record *newRecord = createRecord(st->nUsp, RNN);
+            btPage *bTreePage = getOrCreateRoot(bTreeFile);
+            bool opResult = bTreeInsert(newRecord, bTreePage, bTreeFile);
+            //printf("Fez uma insercao\n");
+            deallocatePage(bTreePage);
             deleteStudent(st);
             if (opResult == false)
             {
@@ -79,6 +82,7 @@ int main()
             btPage *bTreePage = getOrCreateRoot(bTreeFile);
             int nUsp = getNUspFromLine(line);
             long RNN = bTreeSelect(bTreePage, nUsp, bTreeFile);
+            //printf("Resultado da busca: %ld\n", RNN);
             deallocatePage(bTreePage);
             if (RNN == -1)
             {

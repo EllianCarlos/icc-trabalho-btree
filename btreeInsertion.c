@@ -3,23 +3,22 @@
 // Toda lógica da inserção em btree tá aqui
 // Ignorem a bagunça em algumas funções (nomes em português, outros em inglês), vou deixar bunitin depois kkkkk
 
-// Cria uma chave com dados de um registro
-nodeKey *criarChave(nodeKey *newRecord) {
-    nodeKey *chave = (nodeKey *)malloc(sizeof(nodeKey));
-    chave->childs[0] = -1;
-    chave->childs[1] = -1;
-    chave->key = newRecord->key;
-    chave->recordRRN = newRecord->recordRRN;
+// Cria uma estrutura de chave promovida com dados de um registro. Útil para as inserções e splits
+promotedKey *criarChave(record *newRecord, long leftChild, long rightChild) {
+    promotedKey *chave = (promotedKey *)malloc(sizeof(promotedKey));
+    chave->childs[0] = leftChild;
+    chave->childs[1] = rightChild;
+    chave->recordKey = newRecord;
 
     return chave;
 }
 
 /* Retorna o RRN de uma página filha para inserir uma chave.
    Faz esse processo até achar um nó folha */
-long procuraPaginaPraInserir(nodeKey *newRecord, btPage *page) {
-    nodeKey *pageRecord = NULL;
+long procuraPaginaPraInserir(record *newRecord, btPage *page) {
+    record *pageRecord = NULL;
     for(int i = 0; i < page->numberOfKeys; i++) {
-        pageRecord = page->keys[i];
+        pageRecord = page->records[i];
         if(newRecord->key == pageRecord->key)
             return -1; // chaves iguais, erro!
         else if(newRecord->key < pageRecord->key)
@@ -30,12 +29,12 @@ long procuraPaginaPraInserir(nodeKey *newRecord, btPage *page) {
 }
 
 // Busca uma posição dentro do vetor de registros da página para inserir a nova chave
-int buscaPosicaoNoNode(nodeKey *newRecord, btPage *page) {
+int buscaPosicaoNoNode(promotedKey *newRecord, btPage *page) {
     int i = 0;
     for(i = 0; i < page->numberOfKeys; i++) {
-        if(newRecord->key < page->keys[i]->key)
+        if(newRecord->recordKey->key < page->records[i]->key)
             break;
-        else if(newRecord->key == page->keys[i]->key)
+        else if(newRecord->recordKey->key == page->records[i]->key)
             return -1; // já foi inserido, ERRO
     }
 
@@ -43,16 +42,17 @@ int buscaPosicaoNoNode(nodeKey *newRecord, btPage *page) {
 }
 
 // Insere uma chave de forma ordenada em uma página
-Errors insercaoOrdenadaNoNode(nodeKey *newRecord, btPage *page) {
+Errors insercaoOrdenadaNoNode(promotedKey *newRecord, btPage *page) {
     int posicao = buscaPosicaoNoNode(newRecord, page);
     if(posicao != -1) {
         for(int i = page->numberOfKeys-1; i >= posicao; i--) {
-            page->keys[i+1] = page->keys[i];
+            page->records[i+1] = page->records[i];
             page->childs[i+2] = page->childs[i+1];
         }
-        page->keys[posicao] = newRecord;
         page->childs[posicao] = newRecord->childs[0];
         page->childs[posicao+1] = newRecord->childs[1];
+        page->records[posicao]->key = newRecord->recordKey->key;
+        page->records[posicao]->recordRRN = newRecord->recordKey->recordRRN;
 
         return true;
     }
@@ -64,7 +64,7 @@ Errors insercaoOrdenadaNoNode(nodeKey *newRecord, btPage *page) {
 // "Reinicia" uma página splittada para receber novamente as chaves organizadas
 void clearSplittedPage(btPage *page) {
     for(int i = 0; i < MAXKEYS; i++) {
-        page->keys[i] = NULL;
+        page->records[i] = NULL;
         page->childs[i] = -1;
     }
     page->childs[MAXKEYS] = -1;
@@ -73,38 +73,38 @@ void clearSplittedPage(btPage *page) {
 
 // Organiza e distribui as chaves nos nós splittados
 // (em construção)
-nodeKey *organizeKeys(nodeKey **auxArray, btPage *originalPage, btPage *newPage) {
+promotedKey *organizeKeys(promotedKey **auxArray, btPage *originalPage, btPage *newPage) {
     int meio = (MAXKEYS+1)/2;
     clearSplittedPage(originalPage); // limpa a página original antes de recolocar os elementos
     for(int i = 0; i < meio; i++) {
-        originalPage->keys[i] = auxArray[i];
+        originalPage->records[i] = auxArray[i]->recordKey;
         originalPage->childs[i] = auxArray[i]->childs[0];
         originalPage->childs[i+1] = auxArray[i]->childs[1];
     }
     int j = 0;
     for(int i = meio; i < (MAXKEYS+1); i++) {
-        newPage->keys[j] = auxArray[i];
+        newPage->records[j] = auxArray[i]->recordKey;
         newPage->childs[j] = auxArray[i]->childs[0];
         newPage->childs[j+1] = auxArray[i]->childs[1];
         newPage->numberOfKeys++;
         j++;
     }
 
-    return newPage->keys[0]; // retorna a primeira chave da nova página
+    return criarChave(newPage->records[0], newPage->childs[0], newPage->childs[1]); // retorna a primeira chave da nova página
 }
 
 // Cria um array auxiliar de chaves para ajudar no overflow e na promoção de uma chave
-nodeKey **createArrayForKeys(btPage *page, nodeKey *newRecord) {
-    nodeKey **auxArray = (nodeKey **)malloc((MAXKEYS+1)*sizeof(nodeKey *));
+promotedKey **createArrayForKeys(btPage *page, promotedKey *newRecord) {
+    promotedKey **auxArray = (promotedKey **)malloc((MAXKEYS+1)*sizeof(promotedKey *));
 
     int contadorPagina = 0;
     int contadorArray = 0;
     while(contadorArray < (MAXKEYS+1)) {
-        if(page->keys[contadorPagina]->key < newRecord->key) {
-            auxArray[contadorArray] = page->keys[contadorPagina];
+        if(page->records[contadorPagina]->key < newRecord->recordKey->key) {
+            auxArray[contadorArray] = criarChave(page->records[contadorPagina],page->childs[contadorPagina],page->childs[contadorPagina+1]);
             contadorPagina++;
         }
-        else if(page->keys[contadorPagina]->key > newRecord->key) {
+        else if(page->records[contadorPagina]->key > newRecord->recordKey->key) {
             auxArray[contadorArray] = newRecord;
         }
         else {
@@ -121,23 +121,23 @@ nodeKey **createArrayForKeys(btPage *page, nodeKey *newRecord) {
 void removePromotedKeyFromPage(btPage *page) {
     int meio = (MAXKEYS/2) + 1;
     for(int i = 1; i < meio; i--) {
-        page->keys[i-1] = page->keys[i];
-        page->childs[i-1] = page->keys[i]->childs[0];
-        page->childs[i] = page->keys[i]->childs[1];
+        page->records[i-1] = page->records[i];
+        page->childs[i-1] = page->childs[i];
+        page->childs[i] = page->childs[i+1];
     }
 }
 
 // Função principal do split
 // (em construção)
-nodeKey *split(btPage *splitedPage, nodeKey *newRecord, FILE *fp) {
-    nodeKey **auxArray = createArrayForKeys(splitedPage, newRecord);
+promotedKey *split(btPage *splitedPage, promotedKey *newRecord, FILE *fp) {
+    promotedKey **auxArray = createArrayForKeys(splitedPage, newRecord);
 
     btPage *newPage = allocatePage();
     newPage->isLeaf = splitedPage->isLeaf;
     fseek(fp, 0, SEEK_END);
     long rrnNewPage = ftell(fp);
     
-    nodeKey *keyPromoted = organizeKeys(auxArray, splitedPage, newPage);
+    promotedKey *keyPromoted = organizeKeys(auxArray, splitedPage, newPage);
     removePromotedKeyFromPage(newPage);
 
     // próx passo: definir o rrn dos filhos da chave promovida
@@ -151,7 +151,7 @@ nodeKey *split(btPage *splitedPage, nodeKey *newRecord, FILE *fp) {
 }
 
 // Cria uma nova página e seta ela como raiz caso houver overflow na antiga raiz
-void createAndSetNewRoot(btPage *formerRoot, long rrnFormerRoot, nodeKey *promotedKey, FILE *fp) {
+void createAndSetNewRoot(btPage *formerRoot, long rrnFormerRoot, promotedKey *promotedKey, FILE *fp) {
     // Aloca e prepara os dados da nova raiz
     btPage *newRoot = allocatePage();
     newRoot->isLeaf = false;
@@ -169,12 +169,14 @@ void createAndSetNewRoot(btPage *formerRoot, long rrnFormerRoot, nodeKey *promot
 }
 
 // Faz uma inserção em um nó qualquer
-nodeKey *insertInNode(nodeKey *newRecord, btPage *page, FILE *fp) {
+promotedKey *insertInNode(promotedKey *newRecord, btPage *page, FILE *fp) {
     if(page->numberOfKeys < MAXKEYS) { // Sem overflow
         // Checa se é possível inserir. Se sim, insere
         bool checkInsertion = insercaoOrdenadaNoNode(newRecord, page);
         if(checkInsertion) {
             page->numberOfKeys++;
+            //printf("Insercao %d feita!\n", page->numberOfKeys);
+            //printf("Insercao %d feita com sucesso\n", page->numberOfKeys);
         }
         else
             printf("O Registro ja existe!\n");
@@ -183,7 +185,7 @@ nodeKey *insertInNode(nodeKey *newRecord, btPage *page, FILE *fp) {
     }
     else { // Com overflow
         // Faz o split e retorna a chave promovida
-        nodeKey *promotedKey = split(page, newRecord, fp);
+        promotedKey *promotedKey = split(page, newRecord, fp);
 
         return promotedKey;
     }
@@ -191,13 +193,13 @@ nodeKey *insertInNode(nodeKey *newRecord, btPage *page, FILE *fp) {
 
 // Inserção recursiva. Vai investigando os nós até achar uma folha
 // (meio em construção ainda)
-nodeKey *recInserirBTree(nodeKey *newRecord, btPage *page, FILE *fp) {
-    nodeKey *promotedKey = NULL;
+promotedKey *recInserirBTree(promotedKey *newRecord, btPage *page, FILE *fp) {
+    promotedKey *promotedKey = NULL;
     if(page->isLeaf) {
         promotedKey = insertInNode(newRecord, page, fp);
     }
     else {
-        long rrnPageFilha = procuraPaginaPraInserir(newRecord, page);
+        long rrnPageFilha = procuraPaginaPraInserir(newRecord->recordKey, page);
         if(rrnPageFilha == -1) {
             printf("O Registro ja existe!\n");
             return NULL;
@@ -217,21 +219,24 @@ nodeKey *recInserirBTree(nodeKey *newRecord, btPage *page, FILE *fp) {
 }
 
 // Função principal para inserção
-Errors bTreeInsert(nodeKey *newRecord) {
-    FILE *fp = fopen("btree.bin", "r+");
-    btPage *root = getOrCreateRoot(fp);
+Errors bTreeInsert(record *newRecord, btPage *root, FILE *fp) {
+    //FILE *fp = fopen("btree.bin", "r+");
+    //btPage *root = getOrCreateRoot(fp);
     long rrnRoot = getTreeHeader(fp);
 
-    nodeKey *promotedKey = recInserirBTree(newRecord, root, fp);
+    promotedKey *newRecordKey = criarChave(newRecord,-1,-1);
+    promotedKey *promotedKey = recInserirBTree(newRecordKey, root, fp);
     if(promotedKey != NULL) {
+        //printf("Entrou num if que nao devia\n");
         createAndSetNewRoot(root, rrnRoot, promotedKey, fp);
     }
     else {
+        //printf("Escrevendo a raiz de volta\n");
         writePageIntoFile(rrnRoot, root, fp);
         writeTreeHeader(fp, rrnRoot);
     }
 
-    fclose(fp);
+    //fclose(fp);
 
     return true;
 }
