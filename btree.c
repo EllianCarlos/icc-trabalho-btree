@@ -15,6 +15,7 @@ btPage *allocatePage()
     page->childs[MAXKEYS] = -1;
     page->numberOfKeys = 0;
     page->isLeaf = true;
+
     return page;
 }
 
@@ -26,6 +27,7 @@ void deallocatePage(btPage *page)
             free(page->records[i]);
         }
     }
+    if(page->records != NULL)
     free(page->records);
     free(page->childs);
     free(page);
@@ -78,22 +80,26 @@ Errors writePageIntoFile(long rrn, btPage *page, FILE *fp)
     //Verifica se está tudo ok com os dados
     if (PAGESIZE <= rrn && page != NULL)
     {
+        //printf("Entrou no primeiro if\n");
         //Encontra local para escrita baseado no RRN
         fseek(fp, rrn, SEEK_SET);
+        //printf("Deu o fseek no rrn\n");
         //Escreve dados
         //printf("Bytes lidos antes da escrita na pag: %ld\n", ftell(fp));
         for(int i = 0; i < MAXKEYS; i++) {
             fwrite(&page->records[i]->key, sizeof(int), 1, fp);
             fwrite(&page->records[i]->recordRRN, sizeof(long), 1, fp);
             fwrite(&page->childs[i], sizeof(long), 1, fp);
+            //printf("Escreveu a %d chave\n", i+1);
         }
         fwrite(&page->childs[MAXKEYS], sizeof(long), 1, fp);
         fwrite(&page->numberOfKeys, sizeof(short), 1, fp);
         fwrite(&page->isLeaf, sizeof(bool), 1, fp);
         //printf("Bytes lidos depois da escrita da pag: %ld\n\n", ftell(fp));
         fflush(fp);
+        //printf("Escreveu tudo\n");
         //Atualiza valor de espaço livre na página
-        for (int i = 0; i <= FREESPACEONPAGE; i++)
+        for (int i = 0; i < FREESPACEONPAGE; i++)
         {
             fwrite(FREESPACE, 1, 1, fp);
         }
