@@ -150,7 +150,7 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
                 return result;
             }
         }
-        if ((node->keys[i] && key < node->keys[i]->key) && !node->isLeaf)
+        if (!node->isLeaf && (node->keys[i] && key < node->keys[i]->key))
         {
             btPage *aux = getPage(node->childs[i], fp);
             result = bTreeSelect(aux, key, fp);

@@ -9,8 +9,8 @@
 
 #define PAGESIZE 4096
 #define TREEHEADER PAGESIZE
-#define MAXKEYS 200
-//#define MAXKEYS 4
+// #define MAXKEYS 200
+#define MAXKEYS 1
 #define AUXFIELDSSIZEONPAGE (2 + 1) // number of keys and ”is leaf” bool
 #define FREESPACEONPAGE (PAGESIZE - ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3))
 #define PAGELENGTH ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3)
@@ -25,13 +25,15 @@ typedef struct record
 } record;
 */
 
-typedef struct nodeKey {
+typedef struct nodeKey
+{
     int key;
     long recordRRN;
     long childs[2];
 } nodeKey;
 
-typedef struct page {
+typedef struct page
+{
     nodeKey **keys;
     long *childs;
     short numberOfKeys;

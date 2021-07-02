@@ -1,6 +1,6 @@
 #include "btree.h"
 #include "utils.h"
-#include "datafile.h"
+#include "dataFile.h"
 #include "student.h"
 #include "btreeInsertion.h"
 
@@ -12,27 +12,32 @@
 #define datafilename "datafile.bin"
 #define btreefilename "btree.bin"
 
-#define DBG                       \
+#define DBG                         \
     fprintf(stdout, "AAAAAAAAA\n"); \
     fflush(stdout)
 
-void closeAndFreeAll(FILE *bTreeFile, btPage *pageToDeallocate)
+void closeAndFreeAll(FILE *bTreeFile, FILE *dataFile)
 {
     fclose(bTreeFile);
-    deallocatePage(pageToDeallocate);
+    fclose(dataFile);
 }
 
-void throwErrorAndClose(const char *ErrorMessage, FILE *bTreeFile, btPage *pageToDeallocate)
+void throwErrorAndClose(const char *ErrorMessage, FILE *bTreeFile, FILE *dataFile)
 {
     fprintf(stderr, "%s\n", ErrorMessage);
-    closeAndFreeAll(bTreeFile, pageToDeallocate);
+    closeAndFreeAll(bTreeFile, dataFile);
     exitSystem();
 }
 
 int main()
 {
-    FILE *bTreeFile = fopen(btreefilename, "ab+");
-    btPage *bTreePage = getOrCreateRoot(bTreeFile);
+    FILE *bTreeFile = fopen(btreefilename, "rb+");
+    if (bTreeFile == NULL)
+        bTreeFile = fopen(btreefilename, "wb+");
+
+    FILE *dataFile = fopen(datafilename, "rb+");
+    if (dataFile == NULL)
+        dataFile = fopen(datafilename, "wb+");
 
     char line[MAX_LINE_SIZE];
     while (true)
@@ -44,47 +49,49 @@ int main()
         if (OP_INSERT == opCode)
         {
             student *st = getStudentFromLine(line);
-            long RNN = appendAsFixedSize(datafilename, st);
+            long RNN = appendAsFixedSize(dataFile, st);
             nodeKey *newRecord = createRecord(st->nUsp, RNN);
             bool opResult = bTreeInsert(newRecord);
             deleteStudent(st);
             if (opResult == false)
             {
-                throwErrorAndClose("Erro ao adicionar registro", bTreeFile, bTreePage);
+                throwErrorAndClose("Erro ao adicionar registro", bTreeFile, dataFile);
             }
         }
         else if (OP_UPDATE == opCode)
         {
+            btPage *bTreePage = getOrCreateRoot(bTreeFile);
             student *st = getStudentFromLine(line);
             long RNN = bTreeSelect(bTreePage, st->nUsp, bTreeFile);
+            deallocatePage(bTreePage);
             if (RNN == -1)
             {
                 fprintf(stdout, "Registro nao encontrado\n");
             }
             else
             {
-                updateStudent(RNN, datafilename, st);
+                updateStudent(RNN, dataFile, st);
             }
             deleteStudent(st);
         }
         else if (OP_SEARCH == opCode)
         {
+            btPage *bTreePage = getOrCreateRoot(bTreeFile);
             int nUsp = getNUspFromLine(line);
             long RNN = bTreeSelect(bTreePage, nUsp, bTreeFile);
+            deallocatePage(bTreePage);
             if (RNN == -1)
             {
                 fprintf(stdout, "Registro nao encontrado\n");
             }
             else
             {
-                student st;
-                getByRNN(RNN, datafilename, &st);
-                printStudent(&st);
+                getByRNN(RNN, dataFile);
             }
         }
         else
         {
-            closeAndFreeAll(bTreeFile, bTreePage);
+            closeAndFreeAll(bTreeFile, dataFile);
             exitSystem();
         }
     }
