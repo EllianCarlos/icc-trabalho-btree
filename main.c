@@ -54,7 +54,6 @@ int main()
             btPage *bTreePage = getOrCreateRoot(bTreeFile);
             bool opResult = bTreeInsert(newRecord, bTreePage, bTreeFile);
             //printf("Fez uma insercao\n");
-            deallocatePage(bTreePage);
             deleteStudent(st);
             if (opResult == false)
             {
@@ -66,7 +65,6 @@ int main()
             btPage *bTreePage = getOrCreateRoot(bTreeFile);
             student *st = getStudentFromLine(line);
             long RNN = bTreeSelect(bTreePage, st->nUsp, bTreeFile);
-            deallocatePage(bTreePage);
             if (RNN == -1)
             {
                 fprintf(stdout, "Registro nao encontrado!\n");
