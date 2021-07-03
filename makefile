@@ -11,4 +11,7 @@ allWin:
 	@gcc *.c *.h -o main.exe
 
 clean:
-	@rm *.o
+	@rm *.o *.bin
+
+zip:
+	zip makefile.zip -r makefile *.c *.h README.md
