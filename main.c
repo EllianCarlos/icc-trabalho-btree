@@ -52,11 +52,18 @@ int main()
             long RNN = appendAsFixedSize(dataFile, st);
             record *newRecord = createRecord(st->nUsp, RNN);
             btPage *bTreePage = getOrCreateRoot(bTreeFile);
+            long RNNisFound = bTreeSelect(bTreePage, st->nUsp, bTreeFile);
+            if (RNNisFound != -1)
+            {
+                fprintf(stdout, "O Registro ja existe!\n");
+                continue;
+            }
             bool opResult = bTreeInsert(newRecord, bTreePage, bTreeFile);
             //printf("Fez uma insercao\n");
             deleteStudent(st);
             if (opResult == false)
             {
+                deallocatePage(bTreePage);
                 throwErrorAndClose("Erro ao adicionar registro", bTreeFile, dataFile);
             }
         }
@@ -81,7 +88,7 @@ int main()
             int nUsp = getNUspFromLine(line);
             long RNN = bTreeSelect(bTreePage, nUsp, bTreeFile);
             //printf("Resultado da busca: %ld\n", RNN);
-            deallocatePage(bTreePage);
+            // deallocatePage(bTreePage);
             if (RNN == -1)
             {
                 fprintf(stdout, "Registro nao encontrado!\n");
