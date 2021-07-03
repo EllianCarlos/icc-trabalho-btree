@@ -35,7 +35,7 @@ int buscaPosicaoNoNode(promotedKey *newRecord, btPage *page) {
     int i = 0;
     for(i = 0; i < page->numberOfKeys; i++) {
         if(newRecord->recordKey->key < page->records[i]->key)
-            break;
+            return i;
         else if(newRecord->recordKey->key == page->records[i]->key)
             return -1; // já foi inserido, ERRO
     }
@@ -196,15 +196,15 @@ void createAndSetNewRoot(btPage *formerRoot, long rrnFormerRoot, promotedKey *pr
     // Escreve a raiz antiga no arquivo
     //printf("--- RRN a escrever %ld\n", rrnFormerRoot);
     //printf("--- Quantas chaves tem na raiz? %d\n", formerRoot->numberOfKeys);
-    for(int i = 0; i < formerRoot->numberOfKeys; i++) {
-        //printf("--- Chave %d: %d\n", i, formerRoot->records[i]->key);
-        //printf("--- Filho esquerdo: %ld\n", formerRoot->childs[i]);
-        //printf("--- Filho direito: %ld\n", formerRoot->childs[i+1]);
-        /*if(formerRoot->isLeaf)
-            printf("--- Eh folha\n");
-        else
-            printf("--- Nao eh folha\n");*/
-    }
+    // for(int i = 0; i < formerRoot->numberOfKeys; i++) {
+    //     //printf("--- Chave %d: %d\n", i, formerRoot->records[i]->key);
+    //     //printf("--- Filho esquerdo: %ld\n", formerRoot->childs[i]);
+    //     //printf("--- Filho direito: %ld\n", formerRoot->childs[i+1]);
+    //     /*if(formerRoot->isLeaf)
+    //         printf("--- Eh folha\n");
+    //     else
+    //         printf("--- Nao eh folha\n");*/
+    // }
     writePageIntoFile(rrnFormerRoot, formerRoot, fp);
     //printf("Escreveu a raiz antiga no arquivo\n");
 
@@ -278,6 +278,7 @@ Errors bTreeInsert(record *newRecord, btPage *root, FILE *fp) {
     //FILE *fp = fopen("btree.bin", "r+");
     //btPage *root = getOrCreateRoot(fp);
     //printf("Entrou na funcao principal\n");
+    // short test = root->numberOfKeys;
     long rrnRoot = getTreeHeader(fp);
 
     promotedKey *newRecordKey = criarChave(newRecord,-1,-1);
@@ -289,7 +290,7 @@ Errors bTreeInsert(record *newRecord, btPage *root, FILE *fp) {
     else {
         //printf("Escrevendo a raiz de volta\n");
         writePageIntoFile(rrnRoot, root, fp);
-        writeTreeHeader(fp, rrnRoot);
+        // writeTreeHeader(fp, rrnRoot);
     }
 
     //fclose(fp);

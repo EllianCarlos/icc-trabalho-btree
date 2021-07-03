@@ -32,12 +32,8 @@ void throwErrorAndClose(const char *ErrorMessage, FILE *bTreeFile, FILE *dataFil
 int main()
 {
     FILE *bTreeFile = fopen(btreefilename, "wb+");
-    if (bTreeFile == NULL)
-        bTreeFile = fopen(btreefilename, "wb+");
 
     FILE *dataFile = fopen(datafilename, "wb+");
-    if (dataFile == NULL)
-        dataFile = fopen(datafilename, "wb+");
 
     char line[MAX_LINE_SIZE];
     while (true)
@@ -49,8 +45,6 @@ int main()
         if (OP_INSERT == opCode)
         {
             student *st = getStudentFromLine(line);
-            long RNN = appendAsFixedSize(dataFile, st);
-            record *newRecord = createRecord(st->nUsp, RNN);
             btPage *bTreePage = getOrCreateRoot(bTreeFile);
             long RNNisFound = bTreeSelect(bTreePage, st->nUsp, bTreeFile);
             if (RNNisFound != -1)
@@ -58,6 +52,8 @@ int main()
                 fprintf(stdout, "O Registro ja existe!\n");
                 continue;
             }
+            long RNN = appendAsFixedSize(dataFile, st);
+            record *newRecord = createRecord(st->nUsp, RNN);
             bool opResult = bTreeInsert(newRecord, bTreePage, bTreeFile);
             //printf("Fez uma insercao\n");
             deleteStudent(st);
