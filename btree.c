@@ -178,8 +178,10 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
         {
             //Procura no nó atual se a chave existe
             //printf("Chave da pag analisada na iteracao %d: %d\n", i, node->records[i]->key);
+            //printf("--- Verificando se eh igual a %d\n", node->records[i]->key);
             if (key == node->records[i]->key)
             {
+                //printf("---EH IGUAL!\n");
                 //Se encontrar a chave, retorna RRN dela
                 //printf("Achei! Ela ta no RRN %ld\n", node->records[i]->recordRRN);
                 return node->records[i]->recordRRN;
@@ -187,14 +189,16 @@ long bTreeSelect(btPage *node, int key, FILE *fp)
             //Se não existir, tenta procurar no filho adequado, recursivamente
             else if (key < node->records[i]->key && !node->isLeaf)
             {
+                //printf("---Eh menor\n");
                 btPage *aux = getPage(node->childs[i], fp);
                 result = bTreeSelect(aux, key, fp);
                 deallocatePage(aux);
                 return result;
             }
         }
-        if (!node->isLeaf && (node->records[i] && key < node->records[i]->key))
+        if (!node->isLeaf && (node->records[i-1] && key > node->records[i-1]->key))
         {
+            //printf("---Eh maior que a chave %d\n", node->records[i-1]->key);
             btPage *aux = getPage(node->childs[i], fp);
             result = bTreeSelect(aux, key, fp);
             deallocatePage(aux);

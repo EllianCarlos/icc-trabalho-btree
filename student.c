@@ -38,7 +38,7 @@ void deleteStudent(student *st)
 void printStudent(student *st)
 {
     printf("-------------------------------\n");
-    printf("USP number: %d\nName: %s\nSurname: %s\nCourse: %s\nTest grade: %.2f\n", st->nUsp, st->name, st->surname, st->course, st->grade);
+    printf("nUSP: %d\nNome: %s\nSobrenome: %s\nCurso: %s\nNota: %.2f\n", st->nUsp, st->name, st->surname, st->course, st->grade);
     printf("-------------------------------\n");
 }
 

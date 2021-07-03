@@ -8,7 +8,9 @@ promotedKey *criarChave(record *newRecord, long leftChild, long rightChild) {
     promotedKey *chave = (promotedKey *)malloc(sizeof(promotedKey));
     chave->childs[0] = leftChild;
     chave->childs[1] = rightChild;
-    chave->recordKey = newRecord;
+    chave->recordKey = (record *)malloc(sizeof(record));
+    chave->recordKey->key = newRecord->key;
+    chave->recordKey->recordRRN = newRecord->recordRRN;
 
     return chave;
 }
@@ -75,10 +77,15 @@ void clearSplittedPage(btPage *page) {
 // Organiza e distribui as chaves nos nós splittados
 // (em construção)
 promotedKey *organizeKeys(promotedKey **auxArray, btPage *originalPage, btPage *newPage) {
-    //printf("\n --- Vetor auxiliar recebido: ---\n");
-    /*for(int i = 0; i < (MAXKEYS+1); i++) {
-    
-    }*/
+    /*
+    printf("\n --- Vetor auxiliar recebido: ---\n");
+    for(int i = 0; i < (MAXKEYS+1); i++) {
+        printf("Chave [%d]: %d\n", i, auxArray[i]->recordKey->key);
+        printf("RRN do DF armazenado na chave [%d]: %ld\n", i, auxArray[i]->recordKey->recordRRN);
+        printf("Filho esquerdo da chave [%d]: %ld\n", i, auxArray[i]->childs[0]);
+        printf("Filho direito da chave [%d]: %ld\n", i, auxArray[i]->childs[1]);
+    }
+    */
     int meio = (MAXKEYS+1)/2;
     clearSplittedPage(originalPage); // limpa a página original antes de recolocar os elementos
     for(int i = 0; i < meio; i++) {
@@ -143,7 +150,7 @@ void removePromotedKeyFromPage(btPage *page) {
 // Função principal do split
 // (em construção)
 promotedKey *split(btPage *splitedPage, promotedKey *newRecord, FILE *fp) {
-    //printf("Entrou em um split por causa da chave %d\n", newRecord->recordKey->key);
+    //printf(" === Entrou em um split por causa da chave %d\n", newRecord->recordKey->key);
     promotedKey **auxArray = createArrayForKeys(splitedPage, newRecord);
     if(auxArray == NULL)
         return NULL;
@@ -158,13 +165,13 @@ promotedKey *split(btPage *splitedPage, promotedKey *newRecord, FILE *fp) {
     //printf("Deu o seek end\n");
     
     promotedKey *keyPromoted = organizeKeys(auxArray, splitedPage, newPage);
-    //printf("Pegou a chave promovida %d\n", keyPromoted->recordKey->key);
+    //printf(" === Pegou a chave promovida %d\n", keyPromoted->recordKey->key);
     removePromotedKeyFromPage(newPage);
     //printf("Tirar a chave da pagina\n");
 
     // próx passo: definir o rrn dos filhos da chave promovida
     keyPromoted->childs[1] = rrnNewPage;
-    //printf("Filho direito da chave promovida: %ld\n", rrnNewPage);
+    //printf(" === Filho direito da chave promovida: %ld\n", rrnNewPage);
 
     writePageIntoFile(rrnNewPage, newPage, fp);
 
@@ -180,6 +187,7 @@ void createAndSetNewRoot(btPage *formerRoot, long rrnFormerRoot, promotedKey *pr
     //printf("Alocou a raiz nova\n");
     newRoot->isLeaf = false;
     promotedKey->childs[0] = rrnFormerRoot;
+    //printf(" === Filho esquerdo da chave promovida: %ld\n\n", rrnFormerRoot);
     //printf("Pegou o primeiro filho\n");
     //printf("Chave: %d\nFilho1: %ld\nFilho2: %ld\n", promotedKey->recordKey->key, promotedKey->childs[0], promotedKey->childs[1]);
     insertInNode(promotedKey, newRoot, fp);
@@ -252,6 +260,7 @@ promotedKey *recInserirBTree(promotedKey *newRecord, btPage *page, FILE *fp) {
         promotedKey = recInserirBTree(newRecord, pageFilha, fp);
         if(promotedKey != NULL) {
             promotedKey->childs[0] = rrnPageFilha;
+            //printf(" === Filho esquerdo da chave promovida: %ld\n\n", rrnPageFilha);
             
             promotedKey = insertInNode(promotedKey, page, fp);
         }

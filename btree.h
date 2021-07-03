@@ -10,7 +10,7 @@
 #define PAGESIZE 4096
 #define TREEHEADER PAGESIZE
 // #define MAXKEYS 200
-#define MAXKEYS 4
+#define MAXKEYS 204
 #define AUXFIELDSSIZEONPAGE (2 + 1) // number of keys and ”is leaf” bool
 #define PAGELENGTH ((MAXKEYS * 4) + (MAXKEYS * 8) + ((MAXKEYS + 1) * 8) + 3)
 #define FREESPACEONPAGE (PAGESIZE - PAGELENGTH)

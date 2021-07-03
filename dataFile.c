@@ -64,6 +64,6 @@ void updateStudent(long RNN, FILE *fp, student *st)
     fwrite(st->course, sizeof(char), MAX_STRING_SIZE, fp);
     fwrite(&st->grade, sizeof(float), 1, fp);
     fflush(fp);
-    fclose(fp);
+    //fclose(fp);
     return;
 }
